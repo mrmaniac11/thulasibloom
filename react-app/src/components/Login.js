@@ -35,74 +35,85 @@ const Login = ({ isOpen, onClose }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content login-modal">
-        <div className="modal-header">
-          <h3>{isLogin ? 'Login' : 'Sign Up'}</h3>
+      <div className="modal-content auth-modal">
+        <div className="auth-header">
+          <div className="auth-icon">
+            <i className="fas fa-user-circle"></i>
+          </div>
+          <h2>{isLogin ? 'Welcome Back!' : 'Join ThulasiBloom'}</h2>
+          <p>{isLogin ? 'Sign in to your account' : 'Create your account'}</p>
           <button className="close-modal" onClick={onClose}>&times;</button>
         </div>
         
-        <form onSubmit={handleSubmit} className="login-form">
-          {!isLogin && (
-            <div className="form-group">
-              <label>Name *</label>
+        <div className="auth-body">
+          <form onSubmit={handleSubmit} className="auth-form">
+            {!isLogin && (
+              <div className="input-group">
+                <i className="fas fa-user"></i>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Full Name"
+                  required
+                />
+              </div>
+            )}
+            
+            <div className="input-group">
+              <i className="fas fa-envelope"></i>
               <input
-                type="text"
-                name="name"
-                value={formData.name}
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleInputChange}
+                placeholder="Email Address"
                 required
               />
             </div>
-          )}
+            
+            <div className="input-group">
+              <i className="fas fa-phone"></i>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Phone Number"
+                required
+              />
+            </div>
+            
+            <div className="input-group">
+              <i className="fas fa-lock"></i>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Password"
+                required
+              />
+            </div>
+            
+            <button type="submit" className="auth-submit-btn">
+              <i className="fas fa-sign-in-alt"></i>
+              {isLogin ? 'Sign In' : 'Create Account'}
+            </button>
+          </form>
           
-          <div className="form-group">
-            <label>Email *</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Phone *</label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Password *</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          
-          <button type="submit" className="login-btn">
-            {isLogin ? 'Login' : 'Sign Up'}
-          </button>
-          
-          <p className="toggle-form">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <div className="auth-toggle">
+            <span>{isLogin ? "Don't have an account?" : "Already have an account?"}</span>
             <button 
               type="button" 
               onClick={() => setIsLogin(!isLogin)}
-              className="toggle-btn"
+              className="auth-toggle-btn"
             >
-              {isLogin ? 'Sign Up' : 'Login'}
+              {isLogin ? 'Sign Up' : 'Sign In'}
             </button>
-          </p>
-        </form>
+          </div>
+        </div>
       </div>
     </div>
   );

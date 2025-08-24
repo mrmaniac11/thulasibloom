@@ -241,29 +241,24 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
 
           <form onSubmit={handleSubmit} className="checkout-form">
             {!user && (
-              <div className="checkout-options">
-                <h4>Choose Order Method:</h4>
-                <div className="order-method-options">
-                  <label>
-                    <input
-                      type="radio"
-                      name="orderMethod"
-                      value="login"
-                      checked={orderMethod === 'login'}
-                      onChange={(e) => setOrderMethod(e.target.value)}
-                    />
+              <div className="checkout-tabs">
+                <div className="tab-buttons">
+                  <button 
+                    type="button"
+                    className={`tab-btn ${orderMethod === 'login' ? 'active' : ''}`}
+                    onClick={() => setOrderMethod('login')}
+                  >
+                    <i className="fas fa-user-lock"></i>
                     Login & Order
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="orderMethod"
-                      value="whatsapp"
-                      checked={orderMethod === 'whatsapp'}
-                      onChange={(e) => setOrderMethod(e.target.value)}
-                    />
+                  </button>
+                  <button 
+                    type="button"
+                    className={`tab-btn ${orderMethod === 'whatsapp' ? 'active' : ''}`}
+                    onClick={() => setOrderMethod('whatsapp')}
+                  >
+                    <i className="fab fa-whatsapp"></i>
                     Order via WhatsApp
-                  </label>
+                  </button>
                 </div>
               </div>
             )}
@@ -328,55 +323,51 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                     placeholder="Street, Area, Locality"
                   />
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>City *</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={customerInfo.city}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>State *</label>
-                    <select
-                      name="state"
-                      value={customerInfo.state}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Select State</option>
-                      {indianStates.map(state => (
-                        <option key={state} value={state}>{state}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="form-group">
+                  <label>City *</label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={customerInfo.city}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Pincode *</label>
-                    <input
-                      type="text"
-                      name="pincode"
-                      value={customerInfo.pincode}
-                      onChange={handleInputChange}
-                      pattern="[0-9]{6}"
-                      maxLength="6"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Landmark</label>
-                    <input
-                      type="text"
-                      name="landmark"
-                      value={customerInfo.landmark}
-                      onChange={handleInputChange}
-                      placeholder="Near..."
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>State *</label>
+                  <select
+                    name="state"
+                    value={customerInfo.state}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Select State</option>
+                    {indianStates.map(state => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Pincode *</label>
+                  <input
+                    type="text"
+                    name="pincode"
+                    value={customerInfo.pincode}
+                    onChange={handleInputChange}
+                    pattern="[0-9]{6}"
+                    maxLength="6"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Landmark</label>
+                  <input
+                    type="text"
+                    name="landmark"
+                    value={customerInfo.landmark}
+                    onChange={handleInputChange}
+                    placeholder="Near..."
+                  />
                 </div>
                 <div className="delivery-info">
                   <p><i className="fas fa-truck"></i> Delivery by Courier Service</p>

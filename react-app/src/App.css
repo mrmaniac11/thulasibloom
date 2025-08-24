@@ -691,8 +691,10 @@ body {
 
 .checkout-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
 }
 
 .back-btn {
@@ -700,26 +702,41 @@ body {
   background: #6c757d;
   color: white;
   border: none;
-  padding: 1rem;
-  border-radius: 10px;
+  padding: 15px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
 }
 
 .place-order-btn {
   flex: 2;
-  background: #2c5530;
+  background: linear-gradient(135deg, #2c5530, #1e3a21);
   color: white;
   border: none;
-  padding: 1rem;
-  border-radius: 10px;
+  padding: 15px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.place-order-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
 }
 
 .place-order-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .order-success {
@@ -1112,107 +1129,320 @@ body {
   }
 }
 
-/* Login/Auth Styles */
+/* Header Auth Styles */
 .login-btn, .logout-btn {
-  background: #2c5530;
+  background: linear-gradient(135deg, #2c5530, #1e3a21);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 20px;
+  border-radius: 25px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
   margin-left: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(44, 85, 48, 0.3);
 }
 
 .login-btn:hover, .logout-btn:hover {
-  background: #1e3a21;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(44, 85, 48, 0.4);
 }
 
 .user-menu {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   font-size: 14px;
+  font-weight: 500;
 }
 
-.login-modal {
-  max-width: 400px;
+.auth-modal {
+  max-width: 450px;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
 }
 
-.login-form {
+.auth-header {
+  background: linear-gradient(135deg, #2c5530, #1e3a21);
+  color: white;
+  text-align: center;
+  padding: 40px 30px 30px;
+  position: relative;
+}
+
+.auth-icon {
+  font-size: 4rem;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
+
+.auth-header h2 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.auth-header p {
+  opacity: 0.9;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.auth-header .close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.auth-header .close-modal:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.auth-body {
+  padding: 40px 30px;
+  background: white;
+}
+
+.auth-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-}
-
-.toggle-form {
-  text-align: center;
-  margin-top: 15px;
-}
-
-.toggle-btn {
-  background: none;
-  border: none;
-  color: #2c5530;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.checkout-options {
-  margin-bottom: 20px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.order-method-options {
-  display: flex;
   gap: 20px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group i {
+  position: absolute;
+  left: 15px;
+  color: #2c5530;
+  font-size: 1.1rem;
+  z-index: 2;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 15px 15px 15px 50px;
+  border: 2px solid #e9ecef;
+  border-radius: 15px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #2c5530;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
+}
+
+.auth-submit-btn {
+  background: linear-gradient(135deg, #2c5530, #1e3a21);
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   margin-top: 10px;
 }
 
-.order-method-options label {
+.auth-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
+}
+
+.auth-toggle {
+  text-align: center;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.auth-toggle span {
+  color: #666;
+  margin-right: 10px;
+}
+
+.auth-toggle-btn {
+  background: none;
+  border: none;
+  color: #2c5530;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.auth-toggle-btn:hover {
+  color: #1e3a21;
+}
+
+.checkout-tabs {
+  margin-bottom: 30px;
+}
+
+.tab-buttons {
+  display: flex;
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 5px;
+  gap: 5px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 15px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
+  justify-content: center;
+  gap: 10px;
+  color: #666;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #2c5530, #1e3a21);
+  color: white;
+  box-shadow: 0 4px 15px rgba(44, 85, 48, 0.3);
+  transform: translateY(-2px);
+}
+
+.tab-btn:not(.active):hover {
+  background: rgba(44, 85, 48, 0.1);
+  color: #2c5530;
+}
+
+.tab-btn i {
+  font-size: 1.2rem;
+}
+
+.checkout-modal {
+  max-width: 650px;
+  border-radius: 25px;
+  max-height: 85vh;
+  overflow: hidden;
+}
+
+.checkout-modal .modal-header {
+  background: linear-gradient(135deg, #2c5530, #1e3a21);
+  color: white;
+  padding: 25px 30px;
+}
+
+.checkout-modal .modal-header h3 {
+  color: white;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.checkout-modal .modal-body {
+  padding: 30px;
+  max-height: calc(85vh - 120px);
+  overflow-y: auto;
+}
+
+.checkout-form .form-group {
+  margin-bottom: 20px;
+}
+
+.checkout-form .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c5530;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.checkout-form .form-group input,
+.checkout-form .form-group select,
+.checkout-form .form-group textarea {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  box-sizing: border-box;
+}
+
+.checkout-form .form-group input:focus,
+.checkout-form .form-group select:focus,
+.checkout-form .form-group textarea:focus {
+  outline: none;
+  border-color: #2c5530;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
 }
 
 .login-prompt {
   text-align: center;
-  padding: 30px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  padding: 40px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 15px;
+  border: 2px dashed #2c5530;
 }
 
 .login-prompt-btn {
-  background: #2c5530;
+  background: linear-gradient(135deg, #2c5530, #1e3a21);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
+  padding: 15px 30px;
+  border-radius: 25px;
   cursor: pointer;
-  margin-top: 15px;
+  margin-top: 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
-.form-row {
-  display: flex;
-  gap: 15px;
-}
-
-.form-row .form-group {
-  flex: 1;
+.login-prompt-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
 }
 
 .delivery-info {
-  background: #e8f5e8;
-  padding: 10px;
-  border-radius: 6px;
-  margin-top: 15px;
+  background: linear-gradient(135deg, #e8f5e8, #d4edda);
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 20px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #2c5530;
+  font-weight: 600;
+  border-left: 4px solid #2c5530;
 }
 
 /* Responsive Design */
