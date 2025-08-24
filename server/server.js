@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const CryptoJS = require('crypto-js');
+const nodemailer = require('nodemailer');
 
 
 const SECRET_KEY = 'thulasibloom-secret-key-2024';
@@ -151,6 +152,26 @@ app.get('/api/addresses/:userId', (req, res) => {
 });
 
 
+
+// Email order endpoint
+app.post('/api/send-order-email', (req, res) => {
+  const { customer, items, total, message } = req.body;
+  
+  const subject = `New Order from ${customer.name} - ThulasiBloom`;
+  const emailBody = message || `New order received from ${customer.name}`;
+  
+  // Add to email queue
+  db.run(`INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)`,
+    ['mrmaniacpersonal@gmail.com', subject, emailBody], 
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ success: true, message: 'Order queued for email delivery' });
+    }
+  );
+});
 
 // Address validation endpoint
 app.post('/api/validate-address', (req, res) => {
@@ -377,7 +398,47 @@ process.on('SIGINT', () => {
 
 
 
+// Email configuration
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'your-email@gmail.com',
+    pass: process.env.EMAIL_PASS || 'your-app-password'
+  }
+});
+
+// Email queue processor
+const processEmailQueue = async () => {
+  db.all(`SELECT * FROM email_queue WHERE status = 'pending' AND attempts < 3 ORDER BY created_at ASC LIMIT 5`, 
+    async (err, emails) => {
+      if (err || !emails.length) return;
+      
+      for (const email of emails) {
+        try {
+          await transporter.sendMail({
+            from: process.env.EMAIL_USER || 'noreply@thulasibloom.com',
+            to: email.to_email,
+            subject: email.subject,
+            text: email.body
+          });
+          
+          db.run(`UPDATE email_queue SET status = 'sent', sent_at = CURRENT_TIMESTAMP WHERE id = ?`, 
+            [email.id]);
+          console.log(`Email sent to ${email.to_email}`);
+        } catch (error) {
+          console.error(`Email failed for ${email.to_email}:`, error.message);
+          db.run(`UPDATE email_queue SET attempts = attempts + 1 WHERE id = ?`, [email.id]);
+        }
+      }
+    }
+  );
+};
+
+// Process email queue every 5 seconds
+setInterval(processEmailQueue, 5000);
+
 app.listen(PORT, () => {
   console.log(`ThulasiBloom server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log('Email queue processor started');
 });
