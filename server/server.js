@@ -77,6 +77,19 @@ db.serialize(() => {
     // Ignore error if column already exists
   });
 
+// Address validation endpoint
+const { validateAddress } = require('./validators/addressValidator');
+
+app.post('/api/validate-address', (req, res) => {
+  const validation = validateAddress(req.body);
+  
+  if (validation.isValid) {
+    res.json({ success: true, message: 'Address is valid' });
+  } else {
+    res.status(400).json({ success: false, errors: validation.errors });
+  }
+});
+
 // Email order endpoint
 app.post('/api/send-order-email', (req, res) => {
   const { customer, items, total, paymentMethod, orderDate } = req.body;

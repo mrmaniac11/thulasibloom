@@ -68,17 +68,8 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
     return errors;
   };
 
-  const saveAddress = () => {
-    const errors = validateAddress();
-    setAddressErrors(errors);
-    
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-    
-    const newAddress = {
-      id: Date.now(),
-      name: customerInfo.name,
+  const saveAddress = async () => {
+    const addressData = {
       addressLine1: customerInfo.addressLine1,
       addressLine2: customerInfo.addressLine2,
       city: customerInfo.city,
@@ -86,12 +77,37 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
       pincode: customerInfo.pincode,
       landmark: customerInfo.landmark
     };
-    const updatedAddresses = [...addresses, newAddress];
-    setAddresses(updatedAddresses);
-    localStorage.setItem(`addresses_${user.id}`, JSON.stringify(updatedAddresses));
-    setSelectedAddress(newAddress);
-    setShowAddressForm(false);
-    setAddressErrors({});
+    
+    try {
+      const response = await fetch(`${API_BASE}/validate-address`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData)
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        setAddressErrors(result.errors);
+        return;
+      }
+      
+      const newAddress = {
+        id: Date.now(),
+        name: customerInfo.name,
+        ...addressData
+      };
+      const updatedAddresses = [...addresses, newAddress];
+      setAddresses(updatedAddresses);
+      localStorage.setItem(`addresses_${user.id}`, JSON.stringify(updatedAddresses));
+      setSelectedAddress(newAddress);
+      setShowAddressForm(false);
+      setAddressErrors({});
+    } catch (error) {
+      console.error('Validation failed:', error);
+      const localErrors = validateAddress();
+      setAddressErrors(localErrors);
+    }
   };
 
   if (!isOpen) return null;
@@ -502,9 +518,6 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                     placeholder="Near..."
                   />
                 </div>
-                    <div className="delivery-info">
-                      <p><i className="fas fa-truck"></i> Delivery by Courier Service</p>
-                    </div>
                   </>
                 )}
                 
@@ -638,6 +651,11 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                 )}
               </>
             )}
+            
+            <div className="delivery-info">
+              <p><i className="fas fa-truck"></i> Delivery by Courier Service</p>
+            </div>
+            
             <div className="checkout-actions">
               <button type="button" onClick={onBack} className="back-btn">
                 Back to Cart
