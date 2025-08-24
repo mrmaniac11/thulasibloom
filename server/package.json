@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "npm ci --only=production",
+    "build": "npm config set registry https://registry.npmjs.org/ && npm cache clean --force && npm install --only=production",
     "dev": "nodemon server.js"
   },
   "dependencies": {
