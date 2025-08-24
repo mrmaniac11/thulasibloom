@@ -1510,6 +1510,28 @@ body {
   margin-top: 10px;
 }
 
+.whatsapp-address-form {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid #e9ecef;
+}
+
+.whatsapp-address-form .form-group {
+  margin-bottom: 10px;
+}
+
+.whatsapp-address-form input,
+.whatsapp-address-form select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .navbar {

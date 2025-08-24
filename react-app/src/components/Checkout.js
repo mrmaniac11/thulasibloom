@@ -227,6 +227,11 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
     setIsSubmitting(true);
     
     if (orderMethod === 'whatsapp') {
+      if (user && !selectedAddress && addresses.length > 0) {
+        alert('Please select a delivery address');
+        setIsSubmitting(false);
+        return;
+      }
       sendWhatsAppOrder();
     } else {
       // Online payment
@@ -341,7 +346,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                   </div>
                 )}
                 
-                {((user && showAddressForm) || (!user) || (user && orderMethod === 'whatsapp' && (!selectedAddress || addresses.length === 0))) && (
+                {((user && showAddressForm && orderMethod !== 'whatsapp') || (!user && orderMethod !== 'whatsapp')) && (
                   <>
                 <div className="form-group">
                   <label>Name *</label>
@@ -446,7 +451,82 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                   </>
                 )}
                 
-                {user && showAddressForm && (
+                {user && orderMethod === 'whatsapp' && showAddressForm && (
+                  <div className="whatsapp-address-form">
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="addressLine1"
+                        value={customerInfo.addressLine1}
+                        onChange={handleInputChange}
+                        placeholder="Address Line 1 *"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="addressLine2"
+                        value={customerInfo.addressLine2}
+                        onChange={handleInputChange}
+                        placeholder="Address Line 2"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="city"
+                        value={customerInfo.city}
+                        onChange={handleInputChange}
+                        placeholder="City *"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <select
+                        name="state"
+                        value={customerInfo.state}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Select State</option>
+                        {indianStates.map(state => (
+                          <option key={state} value={state}>{state}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="pincode"
+                        value={customerInfo.pincode}
+                        onChange={handleInputChange}
+                        placeholder="Pincode *"
+                        pattern="[0-9]{6}"
+                        maxLength="6"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="landmark"
+                        value={customerInfo.landmark}
+                        onChange={handleInputChange}
+                        placeholder="Landmark"
+                      />
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={saveAddress}
+                      className="save-address-btn"
+                    >
+                      Save Address
+                    </button>
+                  </div>
+                )}
+                
+                {user && showAddressForm && orderMethod !== 'whatsapp' && (
                   <button 
                     type="button" 
                     onClick={saveAddress}
