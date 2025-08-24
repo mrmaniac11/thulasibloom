@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: thulasibloom-backend
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    
+  - type: web
+    name: thulasibloom-frontend
+    env: static
+    buildCommand: cd react-app && npm install && npm run build
+    staticPublishPath: react-app/build
