@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { encryptData } from '../utils/encryption';
+import { indianStates } from '../data/indianStates';
+import Login from './Login';
 
 const Checkout = ({ isOpen, onClose, onBack }) => {
   const { cart, getCartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: ''
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    landmark: ''
   });
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [orderMethod, setOrderMethod] = useState('login'); // 'login' or 'whatsapp'
 
   if (!isOpen) return null;
 
@@ -109,10 +120,83 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
     }
   };
 
+  const sendWhatsAppOrder = () => {
+    const orderDetails = `*ThulasiBloom Order Request*\n\n` +
+      `*Customer Details:*\n` +
+      `Name: ${customerInfo.name}\n` +
+      `Phone: ${customerInfo.phone}\n` +
+      `Email: ${customerInfo.email}\n\n` +
+      `*Delivery Address:*\n` +
+      `${customerInfo.addressLine1}\n` +
+      `${customerInfo.addressLine2}\n` +
+      `${customerInfo.city}, ${customerInfo.state}\n` +
+      `Pincode: ${customerInfo.pincode}\n` +
+      `Landmark: ${customerInfo.landmark}\n\n` +
+      `*Order Items:*\n` +
+      cart.map(item => `${item.name} (${item.weight}) x ${item.quantity} = ₹${item.price * item.quantity}`).join('\n') +
+      `\n\n*Total Amount: ₹${getCartTotal()}*\n` +
+      `*Payment Method: ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}*\n\n` +
+      `*Delivery: By Courier*\n\n` +
+      `Please confirm this order. Thank you!`;
+    
+    const whatsappUrl = `https://wa.me/916384726384?text=${encodeURIComponent(orderDetails)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    setOrderPlaced(true);
+    clearCart();
+    setTimeout(() => {
+      setOrderPlaced(false);
+      onClose();
+    }, 3000);
+  };
+
+  const sendEmailOrder = async () => {
+    const orderDetails = {
+      customer: customerInfo,
+      items: cart,
+      total: getCartTotal(),
+      paymentMethod,
+      orderDate: new Date().toISOString()
+    };
+    
+    try {
+      const response = await fetch(`${API_BASE}/send-order-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderDetails)
+      });
+      
+      if (response.ok) {
+        setOrderPlaced(true);
+        clearCart();
+        setTimeout(() => {
+          setOrderPlaced(false);
+          onClose();
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      // Fallback to WhatsApp
+      sendWhatsAppOrder();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await handlePayment();
+    
+    if (user) {
+      // Logged in user - normal checkout
+      await handlePayment();
+    } else {
+      // Guest user - WhatsApp or email
+      if (orderMethod === 'whatsapp') {
+        sendWhatsAppOrder();
+      } else {
+        await sendEmailOrder();
+      }
+    }
+    
     setIsSubmitting(false);
   };
 

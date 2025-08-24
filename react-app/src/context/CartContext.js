@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 const API_BASE = process.env.NODE_ENV === 'production' 
@@ -48,11 +49,18 @@ const cartReducer = (state, action) => {
 
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const { user } = useAuth();
 
-  // Load cart from server on mount
+  // Load cart from server only if user is logged in
   useEffect(() => {
-    loadCart();
-  }, []);
+    if (user) {
+      loadCart();
+    } else {
+      // Use local storage for guest users
+      const localCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      dispatch({ type: 'SET_CART', payload: localCart });
+    }
+  }, [user]);
 
   const loadCart = async () => {
     try {
@@ -74,24 +82,47 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = async (product, weight, price) => {
-    try {
-      const response = await fetch(`${API_BASE}/cart`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: product.id,
-          product_name: product.name,
-          weight,
-          price,
-          image: product.image
-        })
-      });
-      
-      if (response.ok) {
-        loadCart(); // Reload cart from server
+    if (user) {
+      // Logged in user - use server
+      try {
+        const response = await fetch(`${API_BASE}/cart`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: product.id,
+            product_name: product.name,
+            weight,
+            price,
+            image: product.image
+          })
+        });
+        
+        if (response.ok) {
+          loadCart();
+        }
+      } catch (error) {
+        console.error('Failed to add to cart:', error);
       }
-    } catch (error) {
-      console.error('Failed to add to cart:', error);
+    } else {
+      // Guest user - use local storage
+      const newItem = {
+        id: `${product.id}-${weight}`,
+        productId: product.id,
+        name: product.name,
+        weight,
+        price,
+        image: product.image,
+        quantity: 1
+      };
+      
+      const existingItem = state.items.find(item => item.id === newItem.id);
+      if (existingItem) {
+        updateQuantity(newItem.id, existingItem.quantity + 1);
+      } else {
+        const newCart = [...state.items, newItem];
+        dispatch({ type: 'SET_CART', payload: newCart });
+        localStorage.setItem('guestCart', JSON.stringify(newCart));
+      }
     }
   };
 
