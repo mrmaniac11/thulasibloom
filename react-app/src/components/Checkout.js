@@ -69,6 +69,14 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
   };
 
   const saveAddress = async () => {
+    // Client validation first
+    const clientErrors = validateAddress();
+    setAddressErrors(clientErrors);
+    
+    if (Object.keys(clientErrors).length > 0) {
+      return;
+    }
+    
     const addressData = {
       addressLine1: customerInfo.addressLine1,
       addressLine2: customerInfo.addressLine2,
@@ -104,9 +112,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
       setShowAddressForm(false);
       setAddressErrors({});
     } catch (error) {
-      console.error('Validation failed:', error);
-      const localErrors = validateAddress();
-      setAddressErrors(localErrors);
+      console.error('Server validation failed:', error);
     }
   };
 
@@ -640,14 +646,123 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                   </div>
                 )}
                 
-                {user && showAddressForm && orderMethod !== 'whatsapp' && (
-                  <button 
-                    type="button" 
-                    onClick={saveAddress}
-                    className="save-address-btn"
-                  >
-                    Save Address
-                  </button>
+                {user && showAddressForm && orderMethod === 'online' && (
+                  <div className="whatsapp-address-form">
+                    <h5 className="form-title">Add Your New Address</h5>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="addressLine1"
+                        value={customerInfo.addressLine1}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          if (addressErrors.addressLine1) {
+                            setAddressErrors({...addressErrors, addressLine1: ''});
+                          }
+                        }}
+                        placeholder="Address Line 1 *"
+                        className={addressErrors.addressLine1 ? 'error' : ''}
+                      />
+                      {addressErrors.addressLine1 && (
+                        <div className="error-message">
+                          <i className="fas fa-exclamation-circle"></i>
+                          {addressErrors.addressLine1}
+                        </div>
+                      )}
+                    </div>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="addressLine2"
+                        value={customerInfo.addressLine2}
+                        onChange={handleInputChange}
+                        placeholder="Address Line 2"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="city"
+                        value={customerInfo.city}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          if (addressErrors.city) {
+                            setAddressErrors({...addressErrors, city: ''});
+                          }
+                        }}
+                        placeholder="City *"
+                        className={addressErrors.city ? 'error' : ''}
+                      />
+                      {addressErrors.city && (
+                        <div className="error-message">
+                          <i className="fas fa-exclamation-circle"></i>
+                          {addressErrors.city}
+                        </div>
+                      )}
+                    </div>
+                    <div className="form-group">
+                      <select
+                        name="state"
+                        value={customerInfo.state}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          if (addressErrors.state) {
+                            setAddressErrors({...addressErrors, state: ''});
+                          }
+                        }}
+                        className={addressErrors.state ? 'error' : ''}
+                      >
+                        <option value="">Select State *</option>
+                        {indianStates.map(state => (
+                          <option key={state} value={state}>{state}</option>
+                        ))}
+                      </select>
+                      {addressErrors.state && (
+                        <div className="error-message">
+                          <i className="fas fa-exclamation-circle"></i>
+                          {addressErrors.state}
+                        </div>
+                      )}
+                    </div>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="pincode"
+                        value={customerInfo.pincode}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          if (addressErrors.pincode) {
+                            setAddressErrors({...addressErrors, pincode: ''});
+                          }
+                        }}
+                        placeholder="Pincode *"
+                        maxLength="6"
+                        className={addressErrors.pincode ? 'error' : ''}
+                      />
+                      {addressErrors.pincode && (
+                        <div className="error-message">
+                          <i className="fas fa-exclamation-circle"></i>
+                          {addressErrors.pincode}
+                        </div>
+                      )}
+                    </div>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        name="landmark"
+                        value={customerInfo.landmark}
+                        onChange={handleInputChange}
+                        placeholder="Landmark"
+                      />
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={saveAddress}
+                      className="save-address-btn"
+                    >
+                      Save Address
+                    </button>
+                  </div>
                 )}
               </>
             )}
