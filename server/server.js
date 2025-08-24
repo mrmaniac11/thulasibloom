@@ -77,6 +77,44 @@ db.serialize(() => {
     // Ignore error if column already exists
   });
 
+// Email order endpoint
+app.post('/api/send-order-email', (req, res) => {
+  const { customer, items, total, paymentMethod, orderDate } = req.body;
+  
+  const orderDetails = `
+New Order from ThulasiBloom Website
+
+Customer Details:
+Name: ${customer.name}
+Email: ${customer.email}
+Phone: ${customer.phone}
+
+Delivery Address:
+${customer.addressLine1}
+${customer.addressLine2}
+${customer.city}, ${customer.state}
+Pincode: ${customer.pincode}
+Landmark: ${customer.landmark}
+
+Order Items:
+${items.map(item => `${item.name} (${item.weight}) x ${item.quantity} = ₹${item.price * item.quantity}`).join('\n')}
+
+Total Amount: ₹${total}
+Payment Method: ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}
+Delivery: By Courier
+
+Order Date: ${new Date(orderDate).toLocaleString()}
+
+Please contact the customer to confirm the order.
+  `;
+  
+  console.log('Order Email Details:', orderDetails);
+  
+  // In a real app, you would send email here using nodemailer or similar
+  // For now, just log and return success
+  res.json({ success: true, message: 'Order details logged for manual processing' });
+});
+
   // Notifications table
   db.run(`CREATE TABLE IF NOT EXISTS notifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

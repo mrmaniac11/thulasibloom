@@ -25,6 +25,10 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
   const [showLogin, setShowLogin] = useState(false);
   const [orderMethod, setOrderMethod] = useState('login'); // 'login' or 'whatsapp'
 
+  const API_BASE = process.env.NODE_ENV === 'production' 
+    ? 'https://thulasibloom-backend.onrender.com/api'
+    : 'http://localhost:5000/api';
+
   if (!isOpen) return null;
 
   const handleInputChange = (e) => {
@@ -236,46 +240,149 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="checkout-form">
-            <div className="form-group">
-              <label>Name *</label>
-              <input
-                type="text"
-                name="name"
-                value={customerInfo.name}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Email *</label>
-              <input
-                type="email"
-                name="email"
-                value={customerInfo.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Phone *</label>
-              <input
-                type="tel"
-                name="phone"
-                value={customerInfo.phone}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Address *</label>
-              <textarea
-                name="address"
-                value={customerInfo.address}
-                onChange={handleInputChange}
-                rows="3"
-                required
-              />
-            </div>
+            {!user && (
+              <div className="checkout-options">
+                <h4>Choose Order Method:</h4>
+                <div className="order-method-options">
+                  <label>
+                    <input
+                      type="radio"
+                      name="orderMethod"
+                      value="login"
+                      checked={orderMethod === 'login'}
+                      onChange={(e) => setOrderMethod(e.target.value)}
+                    />
+                    Login & Order
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="orderMethod"
+                      value="whatsapp"
+                      checked={orderMethod === 'whatsapp'}
+                      onChange={(e) => setOrderMethod(e.target.value)}
+                    />
+                    Order via WhatsApp
+                  </label>
+                </div>
+              </div>
+            )}
+            
+            {(!user && orderMethod === 'login') ? (
+              <div className="login-prompt">
+                <p>Please login to continue with secure checkout</p>
+                <button type="button" onClick={() => setShowLogin(true)} className="login-prompt-btn">
+                  Login / Sign Up
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="form-group">
+                  <label>Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={customerInfo.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={customerInfo.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Phone *</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={customerInfo.phone}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Address Line 1 *</label>
+                  <input
+                    type="text"
+                    name="addressLine1"
+                    value={customerInfo.addressLine1}
+                    onChange={handleInputChange}
+                    placeholder="House/Flat No, Building Name"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Address Line 2</label>
+                  <input
+                    type="text"
+                    name="addressLine2"
+                    value={customerInfo.addressLine2}
+                    onChange={handleInputChange}
+                    placeholder="Street, Area, Locality"
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>City *</label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={customerInfo.city}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>State *</label>
+                    <select
+                      name="state"
+                      value={customerInfo.state}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select State</option>
+                      {indianStates.map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Pincode *</label>
+                    <input
+                      type="text"
+                      name="pincode"
+                      value={customerInfo.pincode}
+                      onChange={handleInputChange}
+                      pattern="[0-9]{6}"
+                      maxLength="6"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Landmark</label>
+                    <input
+                      type="text"
+                      name="landmark"
+                      value={customerInfo.landmark}
+                      onChange={handleInputChange}
+                      placeholder="Near..."
+                    />
+                  </div>
+                </div>
+                <div className="delivery-info">
+                  <p><i className="fas fa-truck"></i> Delivery by Courier Service</p>
+                </div>
+              </>
+            )}
             <div className="form-group">
               <label>Payment Method *</label>
               <div className="payment-options">
@@ -312,6 +419,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
           </form>
         </div>
       </div>
+      <Login isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </div>
   );
 };
