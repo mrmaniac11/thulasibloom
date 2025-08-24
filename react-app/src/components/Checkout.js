@@ -176,7 +176,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
       `*Order Items:*\n` +
       cart.map(item => `${item.name} (${item.weight}) x ${item.quantity} = ₹${item.price * item.quantity}`).join('\n') +
       `\n\n*Total Amount: ₹${getCartTotal()}*\n` +
-      `*Payment Method: ${orderMethod === 'cod' ? 'Cash on Delivery' : orderMethod === 'online' ? 'Online Payment' : 'WhatsApp Order'}*\n\n` +
+      `*Payment Method: ${orderMethod === 'online' ? 'Online Payment' : 'WhatsApp Order'}*\n\n` +
       `*Delivery: By Courier*\n\n` +
       `Please confirm this order. Thank you!`;
     
@@ -228,9 +228,6 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
     
     if (orderMethod === 'whatsapp') {
       sendWhatsAppOrder();
-    } else if (orderMethod === 'cod') {
-      // COD order - send via WhatsApp/email
-      await sendEmailOrder();
     } else {
       // Online payment
       await handlePayment();
@@ -339,6 +336,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                 )}
                 
                 {((user && showAddressForm) || (!user) || (user && orderMethod === 'whatsapp' && !selectedAddress)) && (
+                  <>
                 <div className="form-group">
                   <label>Name *</label>
                   <input
@@ -436,9 +434,10 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                     placeholder="Near..."
                   />
                 </div>
-                <div className="delivery-info">
-                  <p><i className="fas fa-truck"></i> Delivery by Courier Service</p>
-                </div>
+                    <div className="delivery-info">
+                      <p><i className="fas fa-truck"></i> Delivery by Courier Service</p>
+                    </div>
+                  </>
                 )}
                 
                 {user && showAddressForm && (
@@ -464,15 +463,6 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                 </button>
                 <button 
                   type="button"
-                  className={`tab-btn ${orderMethod === 'cod' ? 'active' : ''}`}
-                  onClick={() => setOrderMethod('cod')}
-                  style={{display: user ? 'flex' : 'none'}}
-                >
-                  <i className="fas fa-money-bill-wave"></i>
-                  Cash on Delivery
-                </button>
-                <button 
-                  type="button"
                   className={`tab-btn ${orderMethod === 'whatsapp' ? 'active' : ''}`}
                   onClick={() => setOrderMethod('whatsapp')}
                 >
@@ -489,7 +479,6 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                 <button type="submit" disabled={isSubmitting} className="place-order-btn">
                   {isSubmitting ? 'Processing...' : 
                    orderMethod === 'whatsapp' ? 'Send WhatsApp Order' : 
-                   orderMethod === 'cod' ? 'Place COD Order' :
                    'Pay Online'}
                 </button>
               )}
