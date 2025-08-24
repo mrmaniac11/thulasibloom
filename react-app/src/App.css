@@ -1445,6 +1445,56 @@ body {
   border-left: 4px solid #2c5530;
 }
 
+.address-section {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.address-section h4 {
+  color: #2c5530;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.saved-addresses {
+  margin-bottom: 15px;
+}
+
+.saved-addresses label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c5530;
+  font-weight: 600;
+}
+
+.saved-addresses select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  font-size: 1rem;
+}
+
+.add-address-btn, .save-address-btn {
+  background: linear-gradient(135deg, #2c5530, #1e3a21);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.add-address-btn:hover, .save-address-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(44, 85, 48, 0.3);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .navbar {

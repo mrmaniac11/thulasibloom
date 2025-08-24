@@ -23,11 +23,43 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [orderMethod, setOrderMethod] = useState('login'); // 'login' or 'whatsapp'
+  const [orderMethod, setOrderMethod] = useState(user ? 'online' : 'online'); // 'online', 'cod', 'whatsapp'
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
 
   const API_BASE = process.env.NODE_ENV === 'production' 
     ? 'https://thulasibloom-backend.onrender.com/api'
     : 'http://localhost:5000/api';
+
+  // Load saved addresses for logged users
+  useEffect(() => {
+    if (user) {
+      const savedAddresses = JSON.parse(localStorage.getItem(`addresses_${user.id}`) || '[]');
+      setAddresses(savedAddresses);
+      if (savedAddresses.length > 0) {
+        setSelectedAddress(savedAddresses[0]);
+      }
+    }
+  }, [user]);
+
+  const saveAddress = () => {
+    const newAddress = {
+      id: Date.now(),
+      name: customerInfo.name,
+      addressLine1: customerInfo.addressLine1,
+      addressLine2: customerInfo.addressLine2,
+      city: customerInfo.city,
+      state: customerInfo.state,
+      pincode: customerInfo.pincode,
+      landmark: customerInfo.landmark
+    };
+    const updatedAddresses = [...addresses, newAddress];
+    setAddresses(updatedAddresses);
+    localStorage.setItem(`addresses_${user.id}`, JSON.stringify(updatedAddresses));
+    setSelectedAddress(newAddress);
+    setShowAddressForm(false);
+  };
 
   if (!isOpen) return null;
 
@@ -125,21 +157,26 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
   };
 
   const sendWhatsAppOrder = () => {
+    const address = user && selectedAddress ? selectedAddress : customerInfo;
+    const customerName = user ? user.name : customerInfo.name;
+    const customerPhone = user ? user.phone : customerInfo.phone;
+    const customerEmail = user ? user.email : customerInfo.email;
+    
     const orderDetails = `*ThulasiBloom Order Request*\n\n` +
       `*Customer Details:*\n` +
-      `Name: ${customerInfo.name}\n` +
-      `Phone: ${customerInfo.phone}\n` +
-      `Email: ${customerInfo.email}\n\n` +
+      `Name: ${customerName}\n` +
+      `Phone: ${customerPhone}\n` +
+      `Email: ${customerEmail}\n\n` +
       `*Delivery Address:*\n` +
-      `${customerInfo.addressLine1}\n` +
-      `${customerInfo.addressLine2}\n` +
-      `${customerInfo.city}, ${customerInfo.state}\n` +
-      `Pincode: ${customerInfo.pincode}\n` +
-      `Landmark: ${customerInfo.landmark}\n\n` +
+      `${address.addressLine1}\n` +
+      `${address.addressLine2}\n` +
+      `${address.city}, ${address.state}\n` +
+      `Pincode: ${address.pincode}\n` +
+      `Landmark: ${address.landmark}\n\n` +
       `*Order Items:*\n` +
       cart.map(item => `${item.name} (${item.weight}) x ${item.quantity} = ₹${item.price * item.quantity}`).join('\n') +
       `\n\n*Total Amount: ₹${getCartTotal()}*\n` +
-      `*Payment Method: ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}*\n\n` +
+      `*Payment Method: ${orderMethod === 'cod' ? 'Cash on Delivery' : orderMethod === 'online' ? 'Online Payment' : 'WhatsApp Order'}*\n\n` +
       `*Delivery: By Courier*\n\n` +
       `Please confirm this order. Thank you!`;
     
@@ -189,16 +226,14 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    if (user) {
-      // Logged in user - normal checkout
-      await handlePayment();
+    if (orderMethod === 'whatsapp') {
+      sendWhatsAppOrder();
+    } else if (orderMethod === 'cod') {
+      // COD order - send via WhatsApp/email
+      await sendEmailOrder();
     } else {
-      // Guest user - WhatsApp or email
-      if (orderMethod === 'whatsapp') {
-        sendWhatsAppOrder();
-      } else {
-        await sendEmailOrder();
-      }
+      // Online payment
+      await handlePayment();
     }
     
     setIsSubmitting(false);
@@ -263,7 +298,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
               </div>
             )}
             
-            {(!user && orderMethod === 'login') ? (
+            {(!user && orderMethod === 'online') ? (
               <div className="login-prompt">
                 <p>Please login to continue with secure checkout</p>
                 <button type="button" onClick={() => setShowLogin(true)} className="login-prompt-btn">
@@ -272,6 +307,38 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
               </div>
             ) : (
               <>
+                {user && orderMethod !== 'whatsapp' && (
+                  <div className="address-section">
+                    <h4>Delivery Address</h4>
+                    {addresses.length > 0 && (
+                      <div className="saved-addresses">
+                        <label>Choose Address:</label>
+                        <select 
+                          value={selectedAddress?.id || ''} 
+                          onChange={(e) => {
+                            const addr = addresses.find(a => a.id == e.target.value);
+                            setSelectedAddress(addr);
+                          }}
+                        >
+                          {addresses.map(addr => (
+                            <option key={addr.id} value={addr.id}>
+                              {addr.addressLine1}, {addr.city}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    <button 
+                      type="button" 
+                      onClick={() => setShowAddressForm(!showAddressForm)}
+                      className="add-address-btn"
+                    >
+                      {addresses.length === 0 ? 'Add Address' : 'Add New Address'}
+                    </button>
+                  </div>
+                )}
+                
+                {((user && showAddressForm) || (!user) || (user && orderMethod === 'whatsapp' && !selectedAddress)) && (
                 <div className="form-group">
                   <label>Name *</label>
                   <input
@@ -372,44 +439,58 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                 <div className="delivery-info">
                   <p><i className="fas fa-truck"></i> Delivery by Courier Service</p>
                 </div>
+                )}
+                
+                {user && showAddressForm && (
+                  <button 
+                    type="button" 
+                    onClick={saveAddress}
+                    className="save-address-btn"
+                  >
+                    Save Address
+                  </button>
+                )}
               </>
             )}
-            {user && (
-              <div className="form-group">
-                <label>Payment Method *</label>
-                <div className="payment-options">
-                  <label className="payment-option">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="cod"
-                      checked={paymentMethod === 'cod'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    Cash on Delivery
-                  </label>
-                  <label className="payment-option">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="online"
-                      checked={paymentMethod === 'online'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    Online Payment
-                  </label>
-                </div>
+            <div className="checkout-tabs">
+              <div className="tab-buttons">
+                <button 
+                  type="button"
+                  className={`tab-btn ${orderMethod === 'online' ? 'active' : ''}`}
+                  onClick={() => setOrderMethod('online')}
+                >
+                  <i className="fas fa-credit-card"></i>
+                  {user ? 'Online Payment' : 'Login & Order'}
+                </button>
+                <button 
+                  type="button"
+                  className={`tab-btn ${orderMethod === 'cod' ? 'active' : ''}`}
+                  onClick={() => setOrderMethod('cod')}
+                  style={{display: user ? 'flex' : 'none'}}
+                >
+                  <i className="fas fa-money-bill-wave"></i>
+                  Cash on Delivery
+                </button>
+                <button 
+                  type="button"
+                  className={`tab-btn ${orderMethod === 'whatsapp' ? 'active' : ''}`}
+                  onClick={() => setOrderMethod('whatsapp')}
+                >
+                  <i className="fab fa-whatsapp"></i>
+                  Order via WhatsApp
+                </button>
               </div>
-            )}
+            </div>
             <div className="checkout-actions">
               <button type="button" onClick={onBack} className="back-btn">
                 Back to Cart
               </button>
-              {(!user && orderMethod === 'login') ? null : (
+              {(!user && orderMethod === 'online') ? null : (
                 <button type="submit" disabled={isSubmitting} className="place-order-btn">
                   {isSubmitting ? 'Processing...' : 
-                   (!user && orderMethod === 'whatsapp') ? 'Send WhatsApp Order' : 
-                   'Place Order'}
+                   orderMethod === 'whatsapp' ? 'Send WhatsApp Order' : 
+                   orderMethod === 'cod' ? 'Place COD Order' :
+                   'Pay Online'}
                 </button>
               )}
             </div>
