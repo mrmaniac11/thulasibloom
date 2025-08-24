@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 import Checkout from './Checkout';
 
 const Cart = ({ isOpen, onClose }) => {
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
+  const navigate = useNavigate();
+
+  const handleProductClick = (productId) => {
+    onClose();
+    navigate(`/product/${productId}`);
+  };
 
   if (!isOpen) return null;
 
@@ -38,10 +45,7 @@ const Cart = ({ isOpen, onClose }) => {
                 src={item.image || '/images/products/default.jpg'} 
                 alt={item.name} 
                 className="cart-item-image"
-                onClick={() => {
-                  onClose();
-                  window.location.href = `/product/${item.productId}`;
-                }}
+                onClick={() => handleProductClick(item.productId)}
                 onError={(e) => {
                   e.target.src = '/images/products/default.jpg';
                 }}
@@ -49,10 +53,7 @@ const Cart = ({ isOpen, onClose }) => {
               <div className="cart-item-info">
                 <h4 
                   className="cart-item-name"
-                  onClick={() => {
-                    onClose();
-                    window.location.href = `/product/${item.productId}`;
-                  }}
+                  onClick={() => handleProductClick(item.productId)}
                 >
                   {item.name}
                 </h4>
