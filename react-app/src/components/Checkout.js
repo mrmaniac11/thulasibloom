@@ -27,6 +27,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressErrors, setAddressErrors] = useState({});
 
   const API_BASE = process.env.NODE_ENV === 'production' 
     ? 'https://thulasibloom-backend.onrender.com/api'
@@ -43,7 +44,38 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
     }
   }, [user]);
 
+  const validateAddress = () => {
+    const errors = {};
+    
+    if (!customerInfo.addressLine1.trim()) {
+      errors.addressLine1 = 'Address Line 1 is required';
+    }
+    
+    if (!customerInfo.city.trim()) {
+      errors.city = 'City is required';
+    }
+    
+    if (!customerInfo.state) {
+      errors.state = 'Please select a state';
+    }
+    
+    if (!customerInfo.pincode.trim()) {
+      errors.pincode = 'Pincode is required';
+    } else if (!/^[0-9]{6}$/.test(customerInfo.pincode)) {
+      errors.pincode = 'Pincode must be 6 digits';
+    }
+    
+    return errors;
+  };
+
   const saveAddress = () => {
+    const errors = validateAddress();
+    setAddressErrors(errors);
+    
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+    
     const newAddress = {
       id: Date.now(),
       name: customerInfo.name,
@@ -59,6 +91,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
     localStorage.setItem(`addresses_${user.id}`, JSON.stringify(updatedAddresses));
     setSelectedAddress(newAddress);
     setShowAddressForm(false);
+    setAddressErrors({});
   };
 
   if (!isOpen) return null;
@@ -328,19 +361,43 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                         </select>
                         <button 
                           type="button" 
-                          onClick={() => setShowAddressForm(!showAddressForm)}
+                          onClick={() => {
+                            if (!showAddressForm) {
+                              setCustomerInfo({
+                                ...customerInfo,
+                                addressLine1: '',
+                                addressLine2: '',
+                                city: '',
+                                state: '',
+                                pincode: '',
+                                landmark: ''
+                              });
+                            }
+                            setShowAddressForm(!showAddressForm);
+                          }}
                           className="add-btn-small"
                         >
-                          +
+                          <i className={`fas ${showAddressForm ? 'fa-times' : 'fa-plus'}`}></i>
                         </button>
                       </div>
                     ) : (
                       <button 
                         type="button" 
-                        onClick={() => setShowAddressForm(true)}
+                        onClick={() => {
+                          setCustomerInfo({
+                            ...customerInfo,
+                            addressLine1: '',
+                            addressLine2: '',
+                            city: '',
+                            state: '',
+                            pincode: '',
+                            landmark: ''
+                          });
+                          setShowAddressForm(true);
+                        }}
                         className="add-address-btn-compact"
                       >
-                        + Add Delivery Address
+                        <i className="fas fa-plus"></i> Add Delivery Address
                       </button>
                     )}
                   </div>
@@ -453,15 +510,27 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                 
                 {user && orderMethod === 'whatsapp' && showAddressForm && (
                   <div className="whatsapp-address-form">
+                    <h5 className="form-title">Add Your New Address</h5>
                     <div className="form-group">
                       <input
                         type="text"
                         name="addressLine1"
                         value={customerInfo.addressLine1}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          if (addressErrors.addressLine1) {
+                            setAddressErrors({...addressErrors, addressLine1: ''});
+                          }
+                        }}
                         placeholder="Address Line 1 *"
-                        required
+                        className={addressErrors.addressLine1 ? 'error' : ''}
                       />
+                      {addressErrors.addressLine1 && (
+                        <div className="error-message">
+                          <i className="fas fa-exclamation-circle"></i>
+                          {addressErrors.addressLine1}
+                        </div>
+                      )}
                     </div>
                     <div className="form-group">
                       <input
@@ -477,35 +546,67 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                         type="text"
                         name="city"
                         value={customerInfo.city}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          if (addressErrors.city) {
+                            setAddressErrors({...addressErrors, city: ''});
+                          }
+                        }}
                         placeholder="City *"
-                        required
+                        className={addressErrors.city ? 'error' : ''}
                       />
+                      {addressErrors.city && (
+                        <div className="error-message">
+                          <i className="fas fa-exclamation-circle"></i>
+                          {addressErrors.city}
+                        </div>
+                      )}
                     </div>
                     <div className="form-group">
                       <select
                         name="state"
                         value={customerInfo.state}
-                        onChange={handleInputChange}
-                        required
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          if (addressErrors.state) {
+                            setAddressErrors({...addressErrors, state: ''});
+                          }
+                        }}
+                        className={addressErrors.state ? 'error' : ''}
                       >
-                        <option value="">Select State</option>
+                        <option value="">Select State *</option>
                         {indianStates.map(state => (
                           <option key={state} value={state}>{state}</option>
                         ))}
                       </select>
+                      {addressErrors.state && (
+                        <div className="error-message">
+                          <i className="fas fa-exclamation-circle"></i>
+                          {addressErrors.state}
+                        </div>
+                      )}
                     </div>
                     <div className="form-group">
                       <input
                         type="text"
                         name="pincode"
                         value={customerInfo.pincode}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          if (addressErrors.pincode) {
+                            setAddressErrors({...addressErrors, pincode: ''});
+                          }
+                        }}
                         placeholder="Pincode *"
-                        pattern="[0-9]{6}"
                         maxLength="6"
-                        required
+                        className={addressErrors.pincode ? 'error' : ''}
                       />
+                      {addressErrors.pincode && (
+                        <div className="error-message">
+                          <i className="fas fa-exclamation-circle"></i>
+                          {addressErrors.pincode}
+                        </div>
+                      )}
                     </div>
                     <div className="form-group">
                       <input
