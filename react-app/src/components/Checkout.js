@@ -383,38 +383,44 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                 </div>
               </>
             )}
-            <div className="form-group">
-              <label>Payment Method *</label>
-              <div className="payment-options">
-                <label className="payment-option">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="cod"
-                    checked={paymentMethod === 'cod'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  Cash on Delivery
-                </label>
-                <label className="payment-option">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="online"
-                    checked={paymentMethod === 'online'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  Online Payment
-                </label>
+            {user && (
+              <div className="form-group">
+                <label>Payment Method *</label>
+                <div className="payment-options">
+                  <label className="payment-option">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="cod"
+                      checked={paymentMethod === 'cod'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    />
+                    Cash on Delivery
+                  </label>
+                  <label className="payment-option">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="online"
+                      checked={paymentMethod === 'online'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    />
+                    Online Payment
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
             <div className="checkout-actions">
               <button type="button" onClick={onBack} className="back-btn">
                 Back to Cart
               </button>
-              <button type="submit" disabled={isSubmitting} className="place-order-btn">
-                {isSubmitting ? 'Placing Order...' : 'Place Order'}
-              </button>
+              {(!user && orderMethod === 'login') ? null : (
+                <button type="submit" disabled={isSubmitting} className="place-order-btn">
+                  {isSubmitting ? 'Processing...' : 
+                   (!user && orderMethod === 'whatsapp') ? 'Send WhatsApp Order' : 
+                   'Place Order'}
+                </button>
+              )}
             </div>
           </form>
         </div>
