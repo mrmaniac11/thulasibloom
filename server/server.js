@@ -1,9 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const CryptoJS = require('crypto-js');
+const nodemailer = require('nodemailer');
 
 const SECRET_KEY = 'thulasibloom-secret-key-2024';
 
@@ -62,71 +64,13 @@ db.serialize(() => {
     customer_address TEXT NOT NULL,
     total_amount REAL NOT NULL,
     order_items TEXT NOT NULL,
-    payment_method TEXT DEFAULT 'cod',
     status TEXT DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
   
-  // Add payment_method column if it doesn't exist
-  db.run(`ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'cod'`, (err) => {
-    // Ignore error if column already exists
-  });
-  
-  // Add payment_id column if it doesn't exist
-  db.run(`ALTER TABLE orders ADD COLUMN payment_id TEXT`, (err) => {
-    // Ignore error if column already exists
-  });
 
-// Address validation endpoint
-const { validateAddress } = require('./validators/addressValidator');
 
-app.post('/api/validate-address', (req, res) => {
-  const validation = validateAddress(req.body);
-  
-  if (validation.isValid) {
-    res.json({ success: true, message: 'Address is valid' });
-  } else {
-    res.status(400).json({ success: false, errors: validation.errors });
-  }
-});
 
-// Email order endpoint
-app.post('/api/send-order-email', (req, res) => {
-  const { customer, items, total, paymentMethod, orderDate } = req.body;
-  
-  const orderDetails = `
-New Order from ThulasiBloom Website
-
-Customer Details:
-Name: ${customer.name}
-Email: ${customer.email}
-Phone: ${customer.phone}
-
-Delivery Address:
-${customer.addressLine1}
-${customer.addressLine2}
-${customer.city}, ${customer.state}
-Pincode: ${customer.pincode}
-Landmark: ${customer.landmark}
-
-Order Items:
-${items.map(item => `${item.name} (${item.weight}) x ${item.quantity} = ₹${item.price * item.quantity}`).join('\n')}
-
-Total Amount: ₹${total}
-Payment Method: ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}
-Delivery: By Courier
-
-Order Date: ${new Date(orderDate).toLocaleString()}
-
-Please contact the customer to confirm the order.
-  `;
-  
-  console.log('Order Email Details:', orderDetails);
-  
-  // In a real app, you would send email here using nodemailer or similar
-  // For now, just log and return success
-  res.json({ success: true, message: 'Order details logged for manual processing' });
-});
 
   // Notifications table
   db.run(`CREATE TABLE IF NOT EXISTS notifications (
@@ -137,6 +81,98 @@ Please contact the customer to confirm the order.
     phone TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+
+  // User addresses table
+  db.run(`CREATE TABLE IF NOT EXISTS user_addresses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    address_line1 TEXT NOT NULL,
+    address_line2 TEXT,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL,
+    pincode TEXT NOT NULL,
+    landmark TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  
+  // Add phone column if it doesn't exist (for existing databases)
+  db.run(`ALTER TABLE user_addresses ADD COLUMN phone TEXT`, (err) => {
+    // Ignore error if column already exists
+  });
+
+  // Email queue table
+  db.run(`CREATE TABLE IF NOT EXISTS email_queue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    to_email TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    attempts INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    sent_at DATETIME
+  )`);
+});
+
+// Address Routes
+app.post('/api/addresses', (req, res) => {
+  const { userId, name, phone, addressLine1, addressLine2, city, state, pincode, landmark } = req.body;
+  
+  if (!userId || !name || !phone || !addressLine1 || !city || !state || !pincode) {
+    res.status(400).json({ error: 'Required fields missing' });
+    return;
+  }
+  
+  db.run(`INSERT INTO user_addresses (user_id, name, phone, address_line1, address_line2, city, state, pincode, landmark) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [userId, name, phone, addressLine1, addressLine2 || null, city, state, pincode, landmark || null], 
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ message: 'Address saved', id: this.lastID });
+    }
+  );
+});
+
+app.get('/api/addresses/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  db.all('SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC', 
+    [userId], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
+});
+
+// Email order endpoint
+app.post('/api/send-order-email', (req, res) => {
+  const { customer, items, total, message } = req.body;
+  
+  const subject = `New Order from ${customer.name} - ThulasiBloom`;
+  const emailBody = message || `New order received from ${customer.name}`;
+  
+  // Add to email queue
+  db.run(`INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)`,
+    ['mrmaniacpersonal@gmail.com', subject, emailBody], 
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ success: true, message: 'Order queued for email delivery' });
+    }
+  );
+});
+
+// Address validation endpoint
+app.post('/api/validate-address', (req, res) => {
+  res.json({ success: true, message: 'Address validation endpoint' });
 });
 
 // Cart Routes
@@ -238,7 +274,7 @@ app.delete('/api/cart', (req, res) => {
 
 // Order Routes
 app.post('/api/orders', (req, res) => {
-  const { customer, items, total, paymentMethod = 'cod', paymentId } = req.body;
+  const { customer, items, total } = req.body;
   
   try {
     const decryptedCustomer = {
@@ -253,14 +289,14 @@ app.post('/api/orders', (req, res) => {
       return;
     }
   
-  if (!items || items.length === 0) {
-    res.status(400).json({ error: 'Order must contain items' });
-    return;
-  }
+    if (!items || items.length === 0) {
+      res.status(400).json({ error: 'Order must contain items' });
+      return;
+    }
   
-    db.run(`INSERT INTO orders (customer_name, customer_email, customer_phone, customer_address, total_amount, order_items, payment_method, payment_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [decryptedCustomer.name, decryptedCustomer.email, decryptedCustomer.phone, decryptedCustomer.address, total, JSON.stringify(items), paymentMethod, paymentId], 
+    db.run(`INSERT INTO orders (customer_name, customer_email, customer_phone, customer_address, total_amount, order_items) 
+            VALUES (?, ?, ?, ?, ?, ?)`,
+      [decryptedCustomer.name, decryptedCustomer.email, decryptedCustomer.phone, decryptedCustomer.address, total, JSON.stringify(items)], 
       function(err) {
         if (err) {
           res.status(500).json({ error: err.message });
@@ -357,7 +393,47 @@ process.on('SIGINT', () => {
   });
 });
 
+// Email configuration
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'your-email@gmail.com',
+    pass: process.env.EMAIL_PASS || 'your-app-password'
+  }
+});
+
+// Email queue processor
+const processEmailQueue = async () => {
+  db.all(`SELECT * FROM email_queue WHERE status = 'pending' AND attempts < 3 ORDER BY created_at ASC LIMIT 5`, 
+    async (err, emails) => {
+      if (err || !emails.length) return;
+      
+      for (const email of emails) {
+        try {
+          await transporter.sendMail({
+            from: process.env.EMAIL_USER || 'noreply@thulasibloom.com',
+            to: email.to_email,
+            subject: email.subject,
+            text: email.body
+          });
+          
+          db.run(`UPDATE email_queue SET status = 'sent', sent_at = CURRENT_TIMESTAMP WHERE id = ?`, 
+            [email.id]);
+          console.log(`Email sent to ${email.to_email}`);
+        } catch (error) {
+          console.error(`Email failed for ${email.to_email}:`, error.message);
+          db.run(`UPDATE email_queue SET attempts = attempts + 1 WHERE id = ?`, [email.id]);
+        }
+      }
+    }
+  );
+};
+
+// Process email queue every 5 seconds
+setInterval(processEmailQueue, 5000);
+
 app.listen(PORT, () => {
   console.log(`ThulasiBloom server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log('Email queue processor started');
 });

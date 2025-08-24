@@ -56,9 +56,9 @@ export const CartProvider = ({ children }) => {
     if (user) {
       loadCart();
     } else {
-      // Use local storage for guest users
-      const localCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
-      dispatch({ type: 'SET_CART', payload: localCart });
+      // Use session storage for guest users (clears on page refresh)
+      const sessionCart = JSON.parse(sessionStorage.getItem('guestCart') || '[]');
+      dispatch({ type: 'SET_CART', payload: sessionCart });
     }
   }, [user]);
 
@@ -121,22 +121,30 @@ export const CartProvider = ({ children }) => {
       } else {
         const newCart = [...state.items, newItem];
         dispatch({ type: 'SET_CART', payload: newCart });
-        localStorage.setItem('guestCart', JSON.stringify(newCart));
+        sessionStorage.setItem('guestCart', JSON.stringify(newCart));
       }
     }
   };
 
   const removeFromCart = async (id) => {
-    try {
-      const response = await fetch(`${API_BASE}/cart/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        dispatch({ type: 'REMOVE_FROM_CART', payload: id });
+    if (user) {
+      // Logged in user - use server
+      try {
+        const response = await fetch(`${API_BASE}/cart/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          dispatch({ type: 'REMOVE_FROM_CART', payload: id });
+        }
+      } catch (error) {
+        console.error('Failed to remove from cart:', error);
       }
-    } catch (error) {
-      console.error('Failed to remove from cart:', error);
+    } else {
+      // Guest user - use session storage
+      const newCart = state.items.filter(item => item.id !== id);
+      dispatch({ type: 'SET_CART', payload: newCart });
+      sessionStorage.setItem('guestCart', JSON.stringify(newCart));
     }
   };
 
@@ -146,35 +154,52 @@ export const CartProvider = ({ children }) => {
       return;
     }
     
-    try {
-      const response = await fetch(`${API_BASE}/cart/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity })
-      });
-      
-      if (response.ok) {
-        dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
-      } else {
-        const error = await response.json();
-        console.error('Server error:', error.error);
+    if (user) {
+      // Logged in user - use server
+      try {
+        const response = await fetch(`${API_BASE}/cart/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity })
+        });
+        
+        if (response.ok) {
+          dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+        } else {
+          const error = await response.json();
+          console.error('Server error:', error.error);
+        }
+      } catch (error) {
+        console.error('Failed to update quantity:', error);
       }
-    } catch (error) {
-      console.error('Failed to update quantity:', error);
+    } else {
+      // Guest user - use session storage
+      const newCart = state.items.map(item =>
+        item.id === id ? { ...item, quantity } : item
+      );
+      dispatch({ type: 'SET_CART', payload: newCart });
+      sessionStorage.setItem('guestCart', JSON.stringify(newCart));
     }
   };
 
   const clearCart = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/cart`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        dispatch({ type: 'CLEAR_CART' });
+    if (user) {
+      // Logged in user - use server
+      try {
+        const response = await fetch(`${API_BASE}/cart`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          dispatch({ type: 'CLEAR_CART' });
+        }
+      } catch (error) {
+        console.error('Failed to clear cart:', error);
       }
-    } catch (error) {
-      console.error('Failed to clear cart:', error);
+    } else {
+      // Guest user - clear session storage
+      dispatch({ type: 'CLEAR_CART' });
+      sessionStorage.removeItem('guestCart');
     }
   };
 

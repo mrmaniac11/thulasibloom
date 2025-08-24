@@ -10,6 +10,7 @@ const Header = () => {
   const { user, logout } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const isProductDetail = location.pathname.startsWith('/product/');
@@ -39,18 +40,44 @@ const Header = () => {
           </Link>
           <div className="nav-links">
             <button onClick={handleProductsClick} className="nav-products-btn">Products</button>
-            {user ? (
-              <div className="user-menu">
-                <span>Hi, {user.name}</span>
-                <button onClick={logout} className="logout-btn">Logout</button>
-              </div>
-            ) : (
-              <button onClick={() => setShowLogin(true)} className="login-btn">Login</button>
+            {!user && (
+              <>
+                <button onClick={() => setShowLogin(true)} className="login-btn">Login</button>
+                <div className="cart-icon" onClick={() => setIsCartOpen(true)}>
+                  <i className="fas fa-shopping-cart"></i>
+                  <span className="cart-count">{getCartItemsCount()}</span>
+                </div>
+              </>
             )}
-            <div className="cart-icon" onClick={() => setIsCartOpen(true)}>
-              <i className="fas fa-shopping-cart"></i>
-              <span className="cart-count">{getCartItemsCount()}</span>
-            </div>
+            {user && (
+              <div className="hamburger-menu">
+                <button 
+                  className="hamburger-btn" 
+                  onClick={() => setShowMenu(!showMenu)}
+                >
+                  <i className="fas fa-bars"></i>
+                  {getCartItemsCount() > 0 && !showMenu && (
+                    <span className="hamburger-dot"></span>
+                  )}
+                </button>
+                {showMenu && (
+                  <div className="dropdown-menu">
+                    <button onClick={() => { setIsCartOpen(true); setShowMenu(false); }}>
+                      <i className="fas fa-shopping-cart"></i> My Cart
+                      {getCartItemsCount() > 0 && (
+                        <span className="menu-cart-count">{getCartItemsCount()}</span>
+                      )}
+                    </button>
+                    <button onClick={() => alert('My Orders - Coming Soon!')}>
+                      <i className="fas fa-box"></i> My Orders
+                    </button>
+                    <button onClick={logout}>
+                      <i className="fas fa-sign-out-alt"></i> Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </nav>
       </header>

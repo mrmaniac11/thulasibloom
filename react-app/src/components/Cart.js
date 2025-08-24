@@ -92,14 +92,11 @@ const Cart = ({ isOpen, onClose }) => {
         </div>
       )}
       
-      <Checkout 
-        isOpen={showCheckout}
-        onClose={() => {
-          setShowCheckout(false);
-          onClose();
-        }}
-        onBack={() => setShowCheckout(false)}
-      />
+      {showCheckout && (
+        <div className="checkout-overlay">
+          <Checkout onBack={() => setShowCheckout(false)} />
+        </div>
+      )}
     </div>
   );
 };

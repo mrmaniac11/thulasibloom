@@ -97,5 +97,4 @@ The UI is optimized for:
 1. **Hosting Setup** - Deploy to cloud platform
 2. **Image Storage** - Implement cloud storage for product images
 3. **Email/SMS Integration** - Add notification delivery system
-4. **Payment Gateway** - Integrate payment processing
-5. **User Authentication** - Add user accounts and order history
+4. **User Authentication** - Add user accounts and order history
