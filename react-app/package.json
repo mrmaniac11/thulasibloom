@@ -2,6 +2,10 @@
   "name": "thulasibloom-react",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  },
   "dependencies": {
     "crypto-js": "^4.2.0",
     "react": "^18.2.0",
