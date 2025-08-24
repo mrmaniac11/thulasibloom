@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { encryptData } from '../utils/encryption';
@@ -270,30 +270,30 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
               <strong>Total: ₹{getCartTotal()}</strong>
             </div>
           </div>
+          
+          <div className="checkout-tabs">
+            <div className="tab-buttons">
+              <button 
+                type="button"
+                className={`tab-btn ${orderMethod === 'online' ? 'active' : ''}`}
+                onClick={() => setOrderMethod('online')}
+              >
+                <i className="fas fa-credit-card"></i>
+                {user ? 'Online Payment' : 'Login & Order'}
+              </button>
+              <button 
+                type="button"
+                className={`tab-btn ${orderMethod === 'whatsapp' ? 'active' : ''}`}
+                onClick={() => setOrderMethod('whatsapp')}
+              >
+                <i className="fab fa-whatsapp"></i>
+                Order via WhatsApp
+              </button>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="checkout-form">
-            {!user && (
-              <div className="checkout-tabs">
-                <div className="tab-buttons">
-                  <button 
-                    type="button"
-                    className={`tab-btn ${orderMethod === 'login' ? 'active' : ''}`}
-                    onClick={() => setOrderMethod('login')}
-                  >
-                    <i className="fas fa-user-lock"></i>
-                    Login & Order
-                  </button>
-                  <button 
-                    type="button"
-                    className={`tab-btn ${orderMethod === 'whatsapp' ? 'active' : ''}`}
-                    onClick={() => setOrderMethod('whatsapp')}
-                  >
-                    <i className="fab fa-whatsapp"></i>
-                    Order via WhatsApp
-                  </button>
-                </div>
-              </div>
-            )}
+
             
             {(!user && orderMethod === 'online') ? (
               <div className="login-prompt">
@@ -304,7 +304,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
               </div>
             ) : (
               <>
-                {user && orderMethod !== 'whatsapp' && (
+                {user && (
                   <div className="address-section">
                     <h4>Delivery Address</h4>
                     {addresses.length > 0 && (
@@ -335,7 +335,7 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                   </div>
                 )}
                 
-                {((user && showAddressForm) || (!user) || (user && orderMethod === 'whatsapp' && !selectedAddress)) && (
+                {((user && showAddressForm) || (!user) || (user && orderMethod === 'whatsapp' && (!selectedAddress || addresses.length === 0))) && (
                   <>
                 <div className="form-group">
                   <label>Name *</label>
@@ -451,26 +451,6 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                 )}
               </>
             )}
-            <div className="checkout-tabs">
-              <div className="tab-buttons">
-                <button 
-                  type="button"
-                  className={`tab-btn ${orderMethod === 'online' ? 'active' : ''}`}
-                  onClick={() => setOrderMethod('online')}
-                >
-                  <i className="fas fa-credit-card"></i>
-                  {user ? 'Online Payment' : 'Login & Order'}
-                </button>
-                <button 
-                  type="button"
-                  className={`tab-btn ${orderMethod === 'whatsapp' ? 'active' : ''}`}
-                  onClick={() => setOrderMethod('whatsapp')}
-                >
-                  <i className="fab fa-whatsapp"></i>
-                  Order via WhatsApp
-                </button>
-              </div>
-            </div>
             <div className="checkout-actions">
               <button type="button" onClick={onBack} className="back-btn">
                 Back to Cart
