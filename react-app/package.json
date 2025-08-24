@@ -1,6 +1,7 @@
 {
   "name": "thulasibloom-react",
   "version": "1.0.0",
+  "homepage": ".",
   "private": true,
   "engines": {
     "node": "20.x",
