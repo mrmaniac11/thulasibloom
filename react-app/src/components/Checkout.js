@@ -305,11 +305,9 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
             ) : (
               <>
                 {user && (
-                  <div className="address-section">
-                    <h4>Delivery Address</h4>
-                    {addresses.length > 0 && (
-                      <div className="saved-addresses">
-                        <label>Choose Address:</label>
+                  <div className="address-section-compact">
+                    {addresses.length > 0 ? (
+                      <div className="address-row">
                         <select 
                           value={selectedAddress?.id || ''} 
                           onChange={(e) => {
@@ -323,15 +321,23 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
                             </option>
                           ))}
                         </select>
+                        <button 
+                          type="button" 
+                          onClick={() => setShowAddressForm(!showAddressForm)}
+                          className="add-btn-small"
+                        >
+                          +
+                        </button>
                       </div>
+                    ) : (
+                      <button 
+                        type="button" 
+                        onClick={() => setShowAddressForm(true)}
+                        className="add-address-btn-compact"
+                      >
+                        + Add Delivery Address
+                      </button>
                     )}
-                    <button 
-                      type="button" 
-                      onClick={() => setShowAddressForm(!showAddressForm)}
-                      className="add-address-btn"
-                    >
-                      {addresses.length === 0 ? 'Add Address' : 'Add New Address'}
-                    </button>
                   </div>
                 )}
                 
