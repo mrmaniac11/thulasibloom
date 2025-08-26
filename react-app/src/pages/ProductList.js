@@ -12,7 +12,7 @@ const ProductList = () => {
   const handleBubbleClick = (productId) => {
     scrollToProducts();
     setTimeout(() => {
-      window.location.href = `/product/${productId}`;
+      window.location.hash = `/product/${productId}`;
     }, 800);
   };
 
