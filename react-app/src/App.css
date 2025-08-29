@@ -561,7 +561,7 @@ body {
   transition: right 0.3s ease;
   display: flex;
   flex-direction: column;
-}
+  }
 
 .cart-sidebar.open {
   right: 0;
@@ -1888,7 +1888,7 @@ body {
   }
   
 
-  
+
   .nav-links {
     gap: 1rem;
   }
