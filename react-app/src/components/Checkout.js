@@ -138,8 +138,7 @@ const Checkout = ({ onBack }) => {
     if (user) {
       // Logged in user - check if address is selected
       if (!selectedAddressId) {
-        alert('Please select or add a delivery address');
-        return false;
+        errors.deliveryAddress = 'Please select or add a delivery address';
       }
     } else {
       // Guest user - validate address fields
@@ -399,7 +398,12 @@ Thank you for choosing ThulasiBloom! 🌿`;
                       )}
                       <i className="fas fa-chevron-down"></i>
                     </div>
-                    
+                    {addressErrors.deliveryAddress && (
+                      <div className="error-message">
+                        <i className="fas fa-exclamation-circle"></i>
+                        {addressErrors.deliveryAddress}
+                      </div>
+                    )}
                     {isDropdownOpen && (
                       <div className="dropdown-options">
                         <div className="dropdown-scroll">
@@ -412,6 +416,9 @@ Thank you for choosing ThulasiBloom! 🌿`;
                                 setSelectedAddressId(address.id);
                                 setIsDropdownOpen(false);
                                 setShowAddressForm(false);
+                                if (addressErrors.deliveryAddress) {
+                                  setAddressErrors({...addressErrors, deliveryAddress: ''});
+                                }
                               }}
                             >
                               <div className="option-name">{address.name}</div>

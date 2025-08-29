@@ -3,20 +3,22 @@ import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import Checkout from './Checkout';
 
-const Cart = ({ isOpen, onClose }) => {
+const Cart = () => {
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
   const navigate = useNavigate();
+
+  const onClose = () => {
+    navigate('/');
+  };
 
   const handleProductClick = (productId) => {
     onClose();
     navigate(`/product/${productId}`);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className={`cart-sidebar ${isOpen ? 'open' : ''}`}>
+    <div className="cart-sidebar open">
       <div className="cart-header">
         <h3>Shopping Cart</h3>
         <button className="close-cart" onClick={onClose}>&times;</button>

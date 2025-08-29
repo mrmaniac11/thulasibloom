@@ -43,7 +43,7 @@ const Header = () => {
             {!user && (
               <>
                 <button onClick={() => setShowLogin(true)} className="login-btn">Login</button>
-                <div className="cart-icon" onClick={() => setIsCartOpen(true)}>
+                <div className="cart-icon" onClick={() => navigate('/cart')}>
                   <i className="fas fa-shopping-cart"></i>
                   <span className="cart-count">{getCartItemsCount()}</span>
                 </div>
@@ -62,7 +62,7 @@ const Header = () => {
                 </button>
                 {showMenu && (
                   <div className="dropdown-menu">
-                    <button onClick={() => { setIsCartOpen(true); setShowMenu(false); }}>
+                    <button onClick={() => { setShowMenu(false); navigate('/cart'); }}>
                       <i className="fas fa-shopping-cart"></i> My Cart
                       {getCartItemsCount() > 0 && (
                         <span className="menu-cart-count">{getCartItemsCount()}</span>
@@ -81,7 +81,6 @@ const Header = () => {
           </div>
         </nav>
       </header>
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       <Login isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </>
   );
